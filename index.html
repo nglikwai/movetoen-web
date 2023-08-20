@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>MOVE TO EN - TODO</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="//unpkg.com/vue@3"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="//unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/js-cookie"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          screens: {
+            "2xl": { max: "1500px" },
+            xl: { max: "1279px" },
+            lg: { max: "1023px" },
+            md: { max: "767px" },
+            sm: { max: "639px" },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="w-full flex flex-col items-center box-border">
+    <header class="flex justify-between w-full shadow py-7 px-20 xl:px-5">
+      <a href="https://movetoen.com/" class="font-bold text-xl">MOVE TO EN</a>
+      <div>
+        <a
+          href="https://hkustconnect-my.sharepoint.com/:f:/g/personal/lwngaa_connect_ust_hk/EoZTtT4PzRhAgwaBTVqUIBQBMqcR2YHf4KSzeNN8kVDQOw?e=2yrzfU"
+          class="text-lg font-bold"
+          >🔒Drive</a
+        >
+      </div>
+    </header>
+
+    <div
+      id="todo_app"
+      class="mt-10 text-slate-600 flex flex-col items-center 2xl:items-start px-20 xl:px-5 w-full box-border overflow-x-hidden"
+    >
+      <div class="overflow-x-hidden 2xl:w-full">
+        <div class="flex items-center pb-5">
+          <div class="text-white my-2 mr-8">
+            <button
+              class="bg-emerald-700 rounded-full w-10 h-10 font-bold"
+              :class="selectedPerson !== 'WILL' ? 'opacity-50' : ''"
+              @click="selectPerson('WILL')"
+            >
+              W
+            </button>
+            <button
+              class="bg-blue-900 rounded-full w-10 h-10 font-bold"
+              :class="selectedPerson !== 'LIK' ? 'opacity-50' : ''"
+              @click="selectPerson('LIK')"
+            >
+              L
+            </button>
+          </div>
+          <div class="mr-8">
+            <button
+              class="text-sm text-emerald-400 font-bold px-1 rounded my-2 mx-1"
+              @click="TofilterUrgent(0)"
+              :class="filterUrgent === 0 ? 'shadow-lg shadow-emerald-300 bg-emerald-100' : 'bg-emerald-50'"
+            >
+              N
+            </button>
+            <button
+              @click="TofilterUrgent(1)"
+              class="text-sm text-yellow-400 font-bold px-1 rounded my-2 mx-1"
+              :class="filterUrgent === 1 ? 'shadow-lg shadow-yellow-300 bg-yellow-100' : 'bg-yellow-50'"
+            >
+              H
+            </button>
+            <button
+              @click="TofilterUrgent(2)"
+              class="text-sm text-red-400 font-bold px-1 rounded my-2 mx-1"
+              :class="filterUrgent === 2 ? 'shadow-lg shadow-red-300 bg-red-100' : 'bg-red-50'"
+            >
+              U
+            </button>
+          </div>
+          <div class="mr-8">
+            <input
+              id="filterDeadlineInput"
+              type="text"
+              placeholder="12/9"
+              @blur="e => filterDeadline = e.target.value"
+              class="w-16 rounded px-3 py-2 hover:bg-gray-100 text-sm text-slate-600 placeholder-slate-600 font-bold flex justify-center"
+            />
+          </div>
+          <div class="">
+            <button
+              @click="clearFilter"
+              class="text-sm hover:bg-slate-100 text-slate-600 rounded px-3 py-2 font-bold active:scale-90 mr-8"
+            >
+              CLEAR
+            </button>
+          </div>
+          <el-dropdown>
+            <button
+              class="text-sm hover:bg-slate-100 text-slate-600 rounded px-3 py-2 font-bold active:scale-90 mr-8 hover:outline-0"
+            >
+              MORE
+            </button>
+            <template #dropdown>
+              <el-dropdown-menu class="bg-white">
+                <el-dropdown-item @click="showAllTodo"
+                  >{{showHiddenTodo ? 'HIDDEN TODO' :'SHOW ALL TODO'}}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+        <div class="overflow-x-scroll xl:w-screen flex flex-col items-start">
+          <div
+            class="grid gap-x-3"
+            :class="showHiddenTodo ? 'grid-cols-5' : 'grid-cols-3'  "
+            :style="`width: ${showHiddenTodo ? '1500px':'900px'}`"
+          >
+            <div
+              v-for="(step, index) in ['DELETED','TO DO', 'IN PROCESS', 'DONE', 'HIDDEN']"
+              class="bg-slate-100 py-4 px-2 rounded transition"
+              v-show="showHiddenTodo || (index !== 4 && index !==0)"
+            >
+              <div class="flex justify-between items-center">
+                <h1 class="text-slate-400 font-bold text-xs">
+                  {{step}} {{filteredTodos.filter(t => t.status ===
+                  index).length}}
+                </h1>
+                <button
+                  v-if="index===1"
+                  @click="newTodo"
+                  class="text-xs text-gray-400 bg-gray-200 px-2 rounded hover:text-gray-700 transition hover:font-bold"
+                >
+                  NEW
+                </button>
+              </div>
+
+              <div>
+                <div
+                  v-for="todo in filteredTodos.filter(t => t.status === index-1)"
+                  :key="todo.title"
+                  class="group bg-white my-2 shadow p-2 rounded flex flex-col items-start cursor-pointer"
+                >
+                  <div class="flex justify-between w-full">
+                    <input
+                      class="hover:bg-gray-100 rounded px-1 w-full"
+                      type="text"
+                      :value="todo.title"
+                      @blur="e=>submitTodoTitle(todo._id, e)"
+                    />
+                    <div
+                      class="text-xs grid grid-cols-2 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <button
+                        @click="stepDown(todo._id, todo.status)"
+                        class="text-gray-500 bg-gray-100 rounded px-1"
+                      >
+                        ❮
+                      </button>
+                      <button
+                        @click="stepUp(todo._id, todo.status)"
+                        class="text-yellow-500 bg-yellow-100 rounded px-1"
+                      >
+                        ❯
+                      </button>
+                    </div>
+                  </div>
+                  <div @click="toggleUrgent(todo._id, todo.urgent)">
+                    <button
+                      v-if="todo.urgent === 0"
+                      class="bg-emerald-50 text-xs text-emerald-400 font-bold px-1 rounded my-2 mx-1"
+                    >
+                      NORMAL
+                    </button>
+                    <button
+                      v-else-if="todo.urgent === 1"
+                      class="bg-yellow-100 text-xs text-yellow-400 font-bold px-1 rounded my-2 mx-1"
+                    >
+                      HURRY
+                    </button>
+                    <button
+                      v-else-if="todo.urgent === 2"
+                      class="bg-red-100 text-xs text-red-400 font-bold px-1 rounded my-2 mx-1"
+                    >
+                      URGENT
+                    </button>
+                  </div>
+                  <div class="flex justify-between w-full">
+                    <input
+                      @blur="e => updateTodoDeadline(todo._id, e)"
+                      class="text-xs px-1"
+                      type="text"
+                      :value="todo.deadline"
+                    />
+                    <button
+                      class="text-xs px-1 rounded text-white"
+                      @click="togglePerson(todo._id, todo.person)"
+                      :class="todo.person === 'WILL' ? 'bg-emerald-700' : 'bg-blue-900'"
+                    >
+                      {{todo.person}}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const todo_app = Vue.createApp({
+      data() {
+        return {
+          selectedPerson: "",
+          todos: [],
+          // api: "https://api.dse00.com:3000",
+          api: "http://localhost:3002",
+          focusTodo: null,
+          filterUrgent: null,
+          filterDeadline: "",
+          showHiddenTodo: false,
+        };
+      },
+      mounted() {
+        this.loadTodo();
+        this.selectedPerson = Cookies.get("selectedPerson") || "";
+      },
+      methods: {
+        async loadTodo() {
+          this.todos = await this.makeRequest("todos");
+        },
+        async makeRequest(url, method = "GET", params = {}) {
+          if (method !== "GET" && Cookies.get("password") !== "899009") {
+            const password = prompt("password?");
+            if (password !== "899009") return;
+            Cookies.set("password", password);
+          }
+          const fullUrl = `${this.api}/${url}`;
+          let _response;
+          if (method === "GET") {
+            _response = await fetch(fullUrl);
+          } else {
+            _response = await fetch(fullUrl, {
+              method,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(params),
+            });
+          }
+          return _response.json();
+        },
+        async stepUp(id, s) {
+          if (s === 3) return;
+          if (s === 2) {
+            const yes = confirm("confirm hidden?");
+            if (!yes) return;
+          }
+
+          this.todos[this.todos.findIndex((i) => i._id === id)].status = s + 1;
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            status: s + 1,
+          });
+          this.loadTodo();
+        },
+        async stepDown(id, s) {
+          if (s === -1) return;
+          if (s === 0) {
+            const yes = confirm("confirm delete?");
+            if (!yes) return;
+          }
+          this.todos[this.todos.findIndex((i) => i._id === id)].status = s - 1;
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            status: s - 1,
+          });
+          this.loadTodo();
+        },
+        async submitTodoTitle(id, e) {
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            title: e.target.value,
+          });
+          this.loadTodo();
+        },
+        async toggleUrgent(id, u) {
+          this.todos[this.todos.findIndex((i) => i._id === id)].urgent =
+            u === 2 ? 0 : u + 1;
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            urgent: u === 2 ? 0 : u + 1,
+          });
+          this.loadTodo();
+        },
+        async newTodo() {
+          await this.makeRequest(`todos`, "POST", {
+            title: "New Todo",
+            person: this.selectedPerson ?? "WILL",
+          });
+          this.loadTodo();
+        },
+        async updateTodoDeadline(id, e) {
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            deadline: e.target.value,
+          });
+          this.loadTodo();
+        },
+        async togglePerson(id, p) {
+          this.todos[this.todos.findIndex((i) => i._id === id)].person =
+            p === "WILL" ? "LIK" : "WILL";
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            person: p === "WILL" ? "LIK" : "WILL",
+          });
+          this.loadTodo();
+        },
+        selectPerson(p) {
+          if (this.selectedPerson === p) {
+            this.selectedPerson = "";
+            return;
+          }
+          this.selectedPerson = p;
+          Cookies.set("selectedPerson", p);
+        },
+        TofilterUrgent(u) {
+          if (this.filterUrgent === u) {
+            this.filterUrgent = null;
+            return;
+          }
+          this.filterUrgent = u;
+        },
+        clearFilter() {
+          this.filterUrgent = null;
+          this.filterDeadline = "";
+          this.selectedPerson = "";
+          document.querySelector("#filterDeadlineInput").value = "";
+        },
+        showAllTodo() {
+          this.showHiddenTodo = !this.showHiddenTodo;
+        },
+      },
+      computed: {
+        filteredTodos() {
+          let _filteredTodo = [...this.todos];
+          if (this.selectedPerson !== "") {
+            _filteredTodo = _filteredTodo.filter(
+              (t) => t.person === this.selectedPerson
+            );
+          }
+          if (this.filterUrgent !== null) {
+            _filteredTodo = _filteredTodo.filter(
+              (t) => t.urgent === this.filterUrgent
+            );
+          }
+          if (this.filterDeadline !== "") {
+            _filteredTodo = _filteredTodo.filter((t) => {
+              const date_array = t.deadline.split("/");
+              const todoDate = new Date(
+                `2023-${date_array[1]}-${date_array[0]}`
+              );
+              const filterDate = new Date(
+                `2023-${this.filterDeadline.split("/")[1]}-${
+                  this.filterDeadline.split("/")[0]
+                }`
+              );
+              return filterDate >= todoDate;
+            });
+          }
+          return _filteredTodo;
+        },
+      },
+    });
+    todo_app.use(ElementPlus);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      todo_app.component(key, component);
+    }
+    todo_app.mount("#todo_app");
+  </script>
+</html>
