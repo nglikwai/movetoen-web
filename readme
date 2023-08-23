@@ -1,19 +1,18 @@
 # build docker
-docker build --platform linux/amd64 -t dse00b/movetoen-todo .
-
 # push to docker hub
+docker build --platform linux/amd64 -t dse00b/movetoen-todo .
 docker push dse00b/movetoen-todo
 
 
 # remove container
-sudo docker rm -f movetoen-todo
-
 # pull latest from docker hub
-sudo docker pull dse00b/movetoen-todo:latest
-
-
 # run docker
+
+sudo docker rm -f movetoen-todo
+sudo docker pull dse00b/movetoen-todo:latest
 sudo docker run -p 80:80 --name movetoen-todo -d dse00b/movetoen-todo
+
+
 
 # open browser
 http://localhost:80

@@ -26,14 +26,39 @@
     </script>
   </head>
   <body class="w-full flex flex-col items-center box-border">
-    <header class="flex justify-between w-full shadow py-7 px-20 xl:px-5">
+    <header class="flex justify-between w-full shadow py-7 px-24 xl:px-5">
       <a href="https://movetoen.com/" class="font-bold text-xl">MOVE TO EN</a>
-      <div>
+      <div class="relative">
+        <input
+          id="webSearch"
+          type="text"
+          class="rounded peer z-0 px-2 py-1 mr-4 placeholder:font-light w-40 focus:outline-0 text-sm"
+        />
+        <ion-icon
+          name="search-outline"
+          onclick="searchWeb()"
+        ></ion-icon>
+      </div>
+      <div
+        class="text-[18px] font-semibold [&>a:not(:last-child)]:mr-12 last:mr-0"
+      >
+        <a href="https://movetoen.com/#discussion">Discussion</a>
+        <a href="/">Todos</a>
         <a
-          href="https://hkustconnect-my.sharepoint.com/:f:/g/personal/lwngaa_connect_ust_hk/EoZTtT4PzRhAgwaBTVqUIBQBMqcR2YHf4KSzeNN8kVDQOw?e=2yrzfU"
-          class="text-lg font-bold"
-          >🔒Drive</a
+          href="https://www.notion.so/PLAN-e172adcd467347a7bbfeb5bcd9ca1869"
+          target="_blank"
+          >Landed Plan</a
         >
+        <a
+          target="_blank"
+          href="https://hkustconnect-my.sharepoint.com/personal/wcleeaf_connect_ust_hk/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fwcleeaf_connect_ust_hk%2FDocuments%2FManchester%202023&ga=1"
+          >Drive</a
+        >
+        <a
+          target="_blank"
+          href="https://hkustconnect-my.sharepoint.com/:f:/g/personal/lwngaa_connect_ust_hk/EoZTtT4PzRhAgwaBTVqUIBQBMqcR2YHf4KSzeNN8kVDQOw?e=2yrzfU"
+          >Drive 2
+        </a>
       </div>
     </header>
 
@@ -43,7 +68,31 @@
     >
       <div v-if="isLoading" class="absolute top-[84px] loading-bar"></div>
       <div class="overflow-x-hidden 2xl:w-full">
+        <div class="w-full flex flex-row-reverse">
+          <div class="flex items-center text-slate-400">
+            <ion-icon name="time-outline" class="text-lg mr-1"></ion-icon>
+            <span class="text-xs"
+              >{{((new Date('2023-09-12') - new
+              Date())/1000/60/60/24).toFixed(0)}} days remaining</span
+            >
+          </div>
+        </div>
+
         <div class="flex items-center pb-5">
+          <div class="relative">
+            <input
+              v-model="seachKeyword"
+              type="text"
+              class="border border-slate-300 rounded peer z-0 px-2 py-1 mr-4 w-[70px] placeholder:font-light focus:w-40 transition placeholder:opacity-0 focus:placeholder:opacity-100 placeholder:text-sm"
+              placeholder="Search this board"
+              :class="seachKeyword === '' ? 'w-[70px]' : 'w-40'"
+            />
+            <ion-icon
+              name="search-outline"
+              class="absolute top-2 left-10 z-10 peer-focus:opacity-0"
+              :class="seachKeyword.length > 0 ? 'opacity-0' : 'opacity-100'"
+            ></ion-icon>
+          </div>
           <div class="flex my-2 mr-8">
             <div class="flex flex-col items-center mr-1">
               <el-progress type="circle" :percentage="calWill" width="50">
@@ -117,11 +166,14 @@
               MORE
             </button>
             <template #dropdown>
-              <el-dropdown-menu class="bg-white ">
+              <el-dropdown-menu class="bg-white">
                 <el-dropdown-item @click="showAllTodo" class="font-bold my-2"
                   >{{showHiddenTodo ? 'HIDDEN TODO' :'ALL TODO'}}
                 </el-dropdown-item>
-                <el-dropdown-item @click="toggleShowDiary" class="font-bold my-2">
+                <el-dropdown-item
+                  @click="toggleShowDiary"
+                  class="font-bold my-2"
+                >
                   {{showMyDiary ? 'TODO' :'MY DIARY'}}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -283,6 +335,12 @@
         </div>
       </div>
     </div>
+    <footer
+      class="bg-black text-white w-full h-80 flex flex-col items-center justify-center mt-40"
+    >
+      <p class="mb-16">FOR A BETTER LIVE | ONLY LIVE ONCE</p>
+      <p>WAI & WAI</p>
+    </footer>
   </body>
   <script>
     const todo_app = Vue.createApp({
@@ -300,6 +358,7 @@
           isLoading: false,
           showMyDiary: false,
           loggers: [],
+          seachKeyword: "",
         };
       },
       mounted() {
@@ -413,6 +472,7 @@
           this.filterUrgent = u;
         },
         clearFilter() {
+          this.seachKeyword = "";
           this.filterUrgent = null;
           this.filterDeadline = "";
           this.selectedPerson = "";
@@ -467,6 +527,20 @@
       computed: {
         filteredTodos() {
           let _filteredTodo = [...this.todos];
+
+          if (this.seachKeyword !== "") {
+            _filteredTodo = _filteredTodo.filter(
+              (t) =>
+                t.title
+                  .toLowerCase()
+                  .includes(this.seachKeyword.toLowerCase()) ||
+                (t.description &&
+                  t.description
+                    .toLowerCase()
+                    .includes(this.seachKeyword.toLowerCase())) ||
+                t.deadline.includes(this.seachKeyword)
+            );
+          }
           if (this.selectedPerson !== "") {
             _filteredTodo = _filteredTodo.filter(
               (t) => t.person === this.selectedPerson
@@ -526,6 +600,11 @@
       todo_app.component(key, component);
     }
     todo_app.mount("#todo_app");
+
+    const searchWeb = () => {
+      const keyword = document.querySelector("#webSearch").value;
+      window.location.href = (`https://movetoen.com/?s=${keyword}`);
+    };
   </script>
 
   <style>
@@ -555,4 +634,12 @@
       width: 100px;
     }
   </style>
+  <script
+    type="module"
+    src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+  ></script>
+  <script
+    nomodule
+    src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+  ></script>
 </html>
