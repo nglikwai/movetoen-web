@@ -41,43 +41,54 @@
       id="todo_app"
       class="mt-10 text-slate-600 flex flex-col items-center 2xl:items-start px-20 xl:px-5 w-full box-border overflow-x-hidden"
     >
+      <div v-if="isLoading" class="absolute top-[84px] loading-bar"></div>
       <div class="overflow-x-hidden 2xl:w-full">
         <div class="flex items-center pb-5">
-          <div class="text-white my-2 mr-8">
-            <button
-              class="bg-emerald-700 rounded-full w-10 h-10 font-bold"
-              :class="selectedPerson !== 'WILL' ? 'opacity-50' : ''"
-              @click="selectPerson('WILL')"
-            >
-              W
-            </button>
-            <button
-              class="bg-blue-900 rounded-full w-10 h-10 font-bold"
-              :class="selectedPerson !== 'LIK' ? 'opacity-50' : ''"
-              @click="selectPerson('LIK')"
-            >
-              L
-            </button>
+          <div class="flex my-2 mr-8">
+            <div class="flex flex-col items-center mr-1">
+              <el-progress type="circle" :percentage="calWill" width="50">
+                <button
+                  class="bg-emerald-700 rounded-full w-10 h-10 font-bold text-white text-lg"
+                  :class="selectedPerson !== 'WILL' ? 'opacity-30' : ''"
+                  @click="selectPerson('WILL')"
+                >
+                  W
+                </button>
+              </el-progress>
+              <span class="text-xs text-slate-500">{{calWill}} %</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <el-progress type="circle" :percentage="calLik" width="50">
+                <button
+                  class="bg-blue-900 rounded-full w-10 h-10 font-bold text-white text-lg"
+                  :class="selectedPerson !== 'LIK' ? 'opacity-30' : ''"
+                  @click="selectPerson('LIK')"
+                >
+                  L
+                </button>
+              </el-progress>
+              <span class="text-xs text-slate-500">{{calLik}} %</span>
+            </div>
           </div>
           <div class="mr-8">
             <button
-              class="text-sm text-emerald-400 font-bold px-1 rounded my-2 mx-1"
+              class="text-sm font-bold px-3 py-2 rounded mx-1 hover:bg-slate-100 transition"
               @click="TofilterUrgent(0)"
-              :class="filterUrgent === 0 ? 'shadow-lg shadow-emerald-300 bg-emerald-100' : 'bg-emerald-50'"
+              :class="filterUrgent === 0 ? 'bg-slate-100 text-slate-600' : 'text-emerald-400'"
             >
               N
             </button>
             <button
               @click="TofilterUrgent(1)"
-              class="text-sm text-yellow-400 font-bold px-1 rounded my-2 mx-1"
-              :class="filterUrgent === 1 ? 'shadow-lg shadow-yellow-300 bg-yellow-100' : 'bg-yellow-50'"
+              class="text-sm font-bold px-3 py-2 rounded mx-1 hover:bg-slate-100 transition"
+              :class="filterUrgent === 1 ? 'bg-slate-100 text-slate-600' : 'text-yellow-400 '"
             >
               H
             </button>
             <button
               @click="TofilterUrgent(2)"
-              class="text-sm text-red-400 font-bold px-1 rounded my-2 mx-1"
-              :class="filterUrgent === 2 ? 'shadow-lg shadow-red-300 bg-red-100' : 'bg-red-50'"
+              class="text-sm font-bold px-3 py-2 rounded mx-1 hover:bg-slate-100 transition"
+              :class="filterUrgent === 2 ? 'bg-slate-100 text-slate-600' : 'text-red-400'"
             >
               U
             </button>
@@ -88,7 +99,7 @@
               type="text"
               placeholder="12/9"
               @blur="e => filterDeadline = e.target.value"
-              class="w-16 rounded px-3 py-2 hover:bg-gray-100 text-sm text-slate-600 placeholder-slate-600 font-bold flex justify-center"
+              class="w-16 rounded px-3 py-2 hover:bg-slate-100 text-sm text-slate-600 placeholder-slate-600 font-bold flex justify-center"
             />
           </div>
           <div class="">
@@ -106,9 +117,12 @@
               MORE
             </button>
             <template #dropdown>
-              <el-dropdown-menu class="bg-white">
-                <el-dropdown-item @click="showAllTodo"
-                  >{{showHiddenTodo ? 'HIDDEN TODO' :'SHOW ALL TODO'}}
+              <el-dropdown-menu class="bg-white ">
+                <el-dropdown-item @click="showAllTodo" class="font-bold my-2"
+                  >{{showHiddenTodo ? 'HIDDEN TODO' :'ALL TODO'}}
+                </el-dropdown-item>
+                <el-dropdown-item @click="toggleShowDiary" class="font-bold my-2">
+                  {{showMyDiary ? 'TODO' :'MY DIARY'}}
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -116,19 +130,20 @@
         </div>
         <div class="overflow-x-scroll xl:w-screen flex flex-col items-start">
           <div
+            v-if="!showMyDiary"
             class="grid gap-x-3"
             :class="showHiddenTodo ? 'grid-cols-5' : 'grid-cols-3'  "
             :style="`width: ${showHiddenTodo ? '1500px':'900px'}`"
           >
             <div
-              v-for="(step, index) in ['DELETED','TO DO', 'IN PROCESS', 'DONE', 'HIDDEN']"
+              v-for="(step, index) in ['DELETED','TO DO', 'IN PROGRESS', 'DONE', 'HIDDEN']"
               class="bg-slate-100 py-4 px-2 rounded transition"
               v-show="showHiddenTodo || (index !== 4 && index !==0)"
             >
               <div class="flex justify-between items-center">
                 <h1 class="text-slate-400 font-bold text-xs">
                   {{step}} {{filteredTodos.filter(t => t.status ===
-                  index).length}}
+                  index-1).length}}
                 </h1>
                 <button
                   v-if="index===1"
@@ -144,6 +159,10 @@
                   v-for="todo in filteredTodos.filter(t => t.status === index-1)"
                   :key="todo.title"
                   class="group bg-white my-2 shadow p-2 rounded flex flex-col items-start cursor-pointer"
+                  draggable="true"
+                  @dragstart="e=>onTodoDrag(e, todo)"
+                  @dragend="onTodoDrop"
+                  @dragover="e=>e.preventDefault()"
                 >
                   <div class="flex justify-between w-full">
                     <input
@@ -153,9 +172,9 @@
                       @blur="e=>submitTodoTitle(todo._id, e)"
                     />
                     <div
-                      class="text-xs grid grid-cols-2 opacity-0 group-hover:opacity-100 transition"
+                      class="text-xs grid grid-cols-1 opacity-0 group-hover:opacity-100 transition"
                     >
-                      <button
+                      <!-- <button
                         @click="stepDown(todo._id, todo.status)"
                         class="text-gray-500 bg-gray-100 rounded px-1"
                       >
@@ -166,10 +185,36 @@
                         class="text-yellow-500 bg-yellow-100 rounded px-1"
                       >
                         ❯
+                      </button> -->
+                      <button
+                        @click="addTodoDescription(todo._id)"
+                        class="bg-slate-100 rounded px-1 font-bold"
+                        v-show="!todo.description"
+                      >
+                        ⇩
                       </button>
                     </div>
                   </div>
-                  <div @click="toggleUrgent(todo._id, todo.urgent)">
+                  <!-- <textarea
+                    v-show="todo.description"
+                    :rows=""
+                    :value="todo.description"
+                    
+                    class="px-2 py-1 hover:bg-slate-100 rounded w-full mt-2 text-sm"
+                  ></textarea> -->
+
+                  <el-input
+                    v-show="todo.description === '' || todo.description"
+                    placeholder="more"
+                    v-model="todos[todos.findIndex(i => i._id === todo._id)].description"
+                    autosize
+                    type="textarea"
+                    @blur="e=>submitTodoDescription(todo._id, e)"
+                  ></el-input>
+                  <div
+                    @click="toggleUrgent(todo._id, todo.urgent)"
+                    v-if="step !== 'DONE'"
+                  >
                     <button
                       v-if="todo.urgent === 0"
                       class="bg-emerald-50 text-xs text-emerald-400 font-bold px-1 rounded my-2 mx-1"
@@ -189,6 +234,12 @@
                       URGENT
                     </button>
                   </div>
+                  <button
+                    v-else
+                    class="bg-slate-100 text-xs text-slate-400 font-bold px-1 rounded my-2 mx-1"
+                  >
+                    DONE
+                  </button>
                   <div class="flex justify-between w-full">
                     <input
                       @blur="e => updateTodoDeadline(todo._id, e)"
@@ -208,6 +259,27 @@
               </div>
             </div>
           </div>
+          <div v-else>
+            <div
+              v-for="logger in loggers"
+              class="[&>div]:mr-4 w-[900px] flex my-7 text-lg"
+            >
+              <div>{{logger.createdAt.substring(5,10)}}</div>
+              <div
+                class="text-white px-2 rounded-xl font-bold"
+                :class="logger.person === 'WILL' ? 'bg-green-800': 'bg-blue-900' "
+              >
+                {{logger.person}}
+              </div>
+              <div>
+                <span
+                  v-for="word in logger.description?.split(' ')"
+                  :class="handleWordStyle(word)"
+                  >{{word + ' '}}</span
+                >
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -218,12 +290,16 @@
         return {
           selectedPerson: "",
           todos: [],
-          // api: "https://api.dse00.com:3000",
-          api: "http://localhost:3002",
+          api: "https://api.dse00.com:3000",
+          // api: "http://localhost:3002",
           focusTodo: null,
           filterUrgent: null,
           filterDeadline: "",
           showHiddenTodo: false,
+          TodoDragged: {},
+          isLoading: false,
+          showMyDiary: false,
+          loggers: [],
         };
       },
       mounted() {
@@ -233,6 +309,7 @@
       methods: {
         async loadTodo() {
           this.todos = await this.makeRequest("todos");
+          this.isLoading = false;
         },
         async makeRequest(url, method = "GET", params = {}) {
           if (method !== "GET" && Cookies.get("password") !== "899009") {
@@ -240,6 +317,7 @@
             if (password !== "899009") return;
             Cookies.set("password", password);
           }
+          this.isLoading = true;
           const fullUrl = `${this.api}/${url}`;
           let _response;
           if (method === "GET") {
@@ -281,6 +359,12 @@
         async submitTodoTitle(id, e) {
           await this.makeRequest(`todos/${id}`, "PUT", {
             title: e.target.value,
+          });
+          this.loadTodo();
+        },
+        async submitTodoDescription(id, e) {
+          await this.makeRequest(`todos/${id}`, "PUT", {
+            description: e.target.value || null,
           });
           this.loadTodo();
         },
@@ -332,10 +416,52 @@
           this.filterUrgent = null;
           this.filterDeadline = "";
           this.selectedPerson = "";
+          this.showHiddenTodo = false;
+          this.showMyDiary = false;
           document.querySelector("#filterDeadlineInput").value = "";
         },
         showAllTodo() {
           this.showHiddenTodo = !this.showHiddenTodo;
+          this.showMyDiary = false;
+        },
+        onTodoDrag(e, todo) {
+          this.TodoDragged = { todo, screenX: e.screenX };
+        },
+        onTodoDrop(e) {
+          if (e.screenX - this.TodoDragged.screenX > 200) {
+            this.stepUp(
+              this.TodoDragged.todo._id,
+              this.TodoDragged.todo.status
+            );
+          } else if (e.screenX - this.TodoDragged.screenX < -200) {
+            this.stepDown(
+              this.TodoDragged.todo._id,
+              this.TodoDragged.todo.status
+            );
+          }
+        },
+        addTodoDescription(id) {
+          this.todos[this.todos.findIndex((i) => i._id === id)].description =
+            "";
+        },
+        async toggleShowDiary() {
+          this.showMyDiary = !this.showMyDiary;
+          if (this.showMyDiary) {
+            this.loggers = await this.makeRequest("loggers");
+          }
+          this.isLoading = false;
+        },
+        handleWordStyle(word) {
+          const common = "font-medium";
+          let style;
+          if (word === "DONE") style = "text-green-500";
+          if (word === "PROGRESS") style = "text-yellow-500";
+          if (word === "URGENT") style = "text-red-500";
+          if (word === "HURRY") style = "text-yellow-500";
+          if (word === "CREATE") style = "text-green-500";
+          if (word === "NORMAL") style = "text-slate-300";
+
+          return common + " " + style;
         },
       },
       computed: {
@@ -367,6 +493,32 @@
           }
           return _filteredTodo;
         },
+        calWill() {
+          const total = this.todos.filter(
+            (t) => t.person === "WILL" && t.status !== -1 && t.status !== 3
+          ).length;
+          const done = this.todos.filter(
+            (t) => t.person === "WILL" && t.status === 2
+          ).length;
+          const inProgress = this.todos.filter(
+            (t) => t.person === "WILL" && t.status === 1
+          ).length;
+          const val = done + inProgress / 2;
+          return val > 0 ? ((val / total) * 100).toFixed(0) : 0;
+        },
+        calLik() {
+          const total = this.todos.filter(
+            (t) => t.person === "LIK" && t.status !== -1 && t.status !== 3
+          ).length;
+          const done = this.todos.filter(
+            (t) => t.person === "LIK" && t.status === 2
+          ).length;
+          const inProgress = this.todos.filter(
+            (t) => t.person === "LIK" && t.status === 1
+          ).length;
+          const val = done + inProgress / 2;
+          return val > 0 ? ((val / total) * 100).toFixed(0) : 0;
+        },
       },
     });
     todo_app.use(ElementPlus);
@@ -375,4 +527,32 @@
     }
     todo_app.mount("#todo_app");
   </script>
+
+  <style>
+    .el-textarea__inner {
+      box-shadow: none;
+    }
+
+    @keyframes loading {
+      0% {
+        width: 0%;
+      }
+      100% {
+        width: 100%;
+      }
+    }
+
+    .loading-bar {
+      height: 2px;
+      left: 0;
+      width: 100%;
+      background: #000;
+      animation: loading 1.5s infinite;
+    }
+
+    .demo-progress .el-progress--line {
+      margin-bottom: 15px;
+      width: 100px;
+    }
+  </style>
 </html>
