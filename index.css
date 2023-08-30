@@ -1,0 +1,38 @@
+.el-textarea__inner {
+  box-shadow: none;
+}
+
+@keyframes loading {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.loading-bar {
+  height: 2px;
+  left: 0;
+  width: 100%;
+  background: #000;
+  animation: loading 1.5s infinite;
+}
+
+.demo-progress .el-progress--line {
+  margin-bottom: 15px;
+  width: 100px;
+}
+
+.el-message--info{
+  background-color: transparent;
+  border: none;
+}
+
+.el-message--info .el-message__icon {
+  display: none;
+}
+
+.el-message--info .el-message__content {
+  font-size: 100px;
+}

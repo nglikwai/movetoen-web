@@ -4,26 +4,21 @@
     <title>MOVE TO EN - TODO</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="//unpkg.com/vue@3"></script>
+    <!-- <script src="//unpkg.com/vue@3"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
     <script src="//unpkg.com/element-plus"></script>
     <script src="https://unpkg.com/js-cookie"></script>
-    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          screens: {
-            "2xl": { max: "1500px" },
-            xl: { max: "1279px" },
-            lg: { max: "1023px" },
-            md: { max: "767px" },
-            sm: { max: "639px" },
-          },
-        },
-      };
-    </script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script> -->
+    <link rel="stylesheet" href="./lib/css/element-plus.css" />
+    <link rel="icon" type="image/x-icon" href="/avator.png">
+    <script src="./lib/js/vue.global.js"></script>
+    <script src="./lib/js/element-plus.js"></script>
+    <script src="./lib/js/js-cookie.js"></script>
+    <script src="./lib/js/icons-vue.js"></script>
+    <link rel="stylesheet" href="./index.css" />
+    <script src="./lib/js/tailwind.js"></script>
+    <script src="./tailwind.config.js"></script>
   </head>
   <body class="w-full flex flex-col items-center box-border">
     <header class="flex justify-between w-full shadow py-7 px-24 xl:px-5">
@@ -34,10 +29,7 @@
           type="text"
           class="rounded peer z-0 px-2 py-1 mr-4 placeholder:font-light w-40 focus:outline-0 text-sm"
         />
-        <ion-icon
-          name="search-outline"
-          onclick="searchWeb()"
-        ></ion-icon>
+        <ion-icon name="search-outline" onclick="searchWeb()"></ion-icon>
       </div>
       <div
         class="text-[18px] font-semibold [&>a:not(:last-child)]:mr-12 last:mr-0"
@@ -64,18 +56,110 @@
 
     <div
       id="todo_app"
-      class="mt-10 text-slate-600 flex flex-col items-center 2xl:items-start px-20 xl:px-5 w-full box-border overflow-x-hidden"
+      class="mt-10 text-slate-600 flex flex-col items-center 2xl:items-start px-20 xl:px-5 w-full box-border overflow-x-hidden opacity-0 min-h-[72vh]"
     >
       <div v-if="isLoading" class="absolute top-[84px] loading-bar"></div>
-      <div class="overflow-x-hidden 2xl:w-full">
-        <div class="w-full flex flex-row-reverse">
-          <div class="flex items-center text-slate-400">
-            <ion-icon name="time-outline" class="text-lg mr-1"></ion-icon>
-            <span class="text-xs"
-              >{{((new Date('2023-09-12') - new
+      <div class="overflow-x-hidden 2xl:w-full min-w-[52vw]">
+        <div class="w-full flex items-center justify-between mb-4">
+          <div class="font-bold text-xl flex items-center w-4/5">
+            <el-popover placement="bottom-start" trigger="hover" width="300">
+              <template #reference>
+                <div class="flex items-center group">
+                  <ion-icon
+                    class="cursor-pointer mr-1 group-hover:hidden transition"
+                    name="chevron-down-outline"
+                  ></ion-icon>
+                  <ion-icon
+                    @click="switchPlan"
+                    name="sync-outline"
+                    class="cursor-pointer mr-1 hidden group-hover:block transition"
+                  ></ion-icon>
+                </div>
+              </template>
+              <div class="">
+                <div
+                  v-for="(plan, index) in allPlans"
+                  class="rounded p-1 pt-3 w-full py-3 hover:bg-slate-50 my-1 active:bg-slate-100"
+                  :class="`bg-slate-${plan._id === currentPlan._id ? '100' : '0'}`"
+                >
+                  <button
+                    class="px-4 w-full rounded-full flex justify-start font-bold flex justify-between items-center"
+                    @click="changePlan(plan._id)"
+                  >
+                    <span>{{plan.title}}</span>
+                    <span class="text-xs text-slate-300">#{{index+1}}</span>
+                  </button>
+                </div>
+                <div class="flex justify-between items-center">
+                  <div class="rounded">
+                    <button
+                      @click="toMakeNewPlan"
+                      class="px-4 rounded-full flex justify-start font-bold hover:bg-slate-100 py-2 my-1 transition"
+                    >
+                      <ion-icon
+                        name="add-outline"
+                        class="text-lg mr-2"
+                      ></ion-icon>
+                      <span class="text-xs"> NEW PLAN</span>
+                    </button>
+                  </div>
+                  <button
+                    @click="setPlanPassword"
+                    class="mr-4 hover:bg-slate-100 rounded-full p-2"
+                  >
+                    <ion-icon
+                      v-if="!currentPlan.password"
+                      name="lock-open-outline"
+                    ></ion-icon>
+                    <div v-else>
+                      <span class="text-xs text-rose-400 mr-2">LOCKED</span>
+                      <ion-icon
+                        name="lock-closed-outline"
+                        class="text-rose-500 bg-rose-100 rounded-full"
+                      ></ion-icon>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </el-popover>
+            <ion-icon
+              @click="setPlanPassword"
+              name="lock-closed-outline"
+              v-if="currentPlan.password"
+              class="text-slate-400 mr-2 cursor-pointer"
+            ></ion-icon>
+
+            <input
+              class="hover:bg-gray-100 rounded px-1 w-full"
+              type="text"
+              :value="currentPlan.title"
+              @blur="e=>submitPlanTitle(currentPlan._id, e)"
+            />
+          </div>
+          <div class="flex items-center text-slate-400 group">
+            <div class="flex items-center">
+              <ion-icon name="time-outline" class="text-lg mr-1"></ion-icon>
+              <input
+                type="date"
+                class="hidden group-hover:block text-sm"
+                :value="currentPlan.deadline?.substring(0,10)"
+                @blur="e=>changePlanDeadline(currentPlan._id,e)"
+              />
+            </div>
+            <span class="text-xs group-hover:hidden" v-if="currentPlan.deadline"
+              >{{((new Date(currentPlan.deadline) - new
               Date())/1000/60/60/24).toFixed(0)}} days remaining</span
             >
           </div>
+        </div>
+        <div class="mb-6">
+          <input
+            class="hover:bg-gray-100 rounded px-1 w-full"
+            type="text"
+            :value="currentPlan.description"
+            placeholder="something about plan"
+            @blur="e=>submitPlanDescription(currentPlan._id, e)"
+          />
         </div>
 
         <div class="flex items-center pb-5">
@@ -85,12 +169,12 @@
               type="text"
               class="border border-slate-300 rounded peer z-0 px-2 py-1 mr-4 w-[70px] placeholder:font-light focus:w-40 transition placeholder:opacity-0 focus:placeholder:opacity-100 placeholder:text-sm"
               placeholder="Search this board"
-              :class="seachKeyword === '' ? 'w-[70px]' : 'w-40'"
+              :class="seachKeyword.length > 0 ? '!w-40' : 'w-[70px]'"
             />
             <ion-icon
               name="search-outline"
-              class="absolute top-2 left-10 z-10 peer-focus:opacity-0"
-              :class="seachKeyword.length > 0 ? 'opacity-0' : 'opacity-100'"
+              class="absolute top-2 left-10 z-10 opacity-100 peer-focus:opacity-0"
+              :class="seachKeyword.length > 0 ? 'invisible' : '!visible'"
             ></ion-icon>
           </div>
           <div class="flex my-2 mr-8">
@@ -119,7 +203,7 @@
               <span class="text-xs text-slate-500">{{calLik}} %</span>
             </div>
           </div>
-          <div class="mr-8">
+          <div class="mr-4">
             <button
               class="text-sm font-bold px-3 py-2 rounded mx-1 hover:bg-slate-100 transition"
               @click="TofilterUrgent(0)"
@@ -142,6 +226,27 @@
               U
             </button>
           </div>
+          <el-popover placement="top-start" trigger="hover" width="200">
+            <template #reference>
+              <button
+                class="w-5 h-5 rounded-full mr-8 border-2 border-slate-400"
+                :class="`bg-${categories[filterCategory]}-300`"
+              ></button>
+            </template>
+            <div class="flex justify-between">
+              <div
+                v-for="(cat, index) in categories"
+                class="rounded p-1 pt-2"
+                :class="`bg-slate-${filterCategory === index ? '100' : '0'}`"
+              >
+                <button
+                  class="w-4 h-4 rounded-full"
+                  :class="`bg-${cat}-300`"
+                  @click="filterCategory = index"
+                ></button>
+              </div>
+            </div>
+          </el-popover>
           <div class="mr-8">
             <input
               id="filterDeadlineInput"
@@ -176,11 +281,47 @@
                 >
                   {{showMyDiary ? 'TODO' :'MY DIARY'}}
                 </el-dropdown-item>
+                <el-dropdown-item
+                  @click="exportExcel"
+                  class="font-bold my-2"
+                >
+                  EXPORT EXCEL
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+
+          <el-popover
+            placement="top-start"
+            trigger="hover"
+            :content="socketMessage"
+          >
+            <template #reference>
+              <button @click="socketSendHeart" class="active:scale-90">
+                <span class="text-3xl peer mr-2">{{socketIcon}}</span>
+              </button>
+            </template>
+          </el-popover>
         </div>
-        <div class="overflow-x-scroll xl:w-screen flex flex-col items-start">
+        <div
+          v-if="!showSecretPlan"
+          class="w-full flex flex-col justify-center items-center text-xl my-20"
+        >
+          <div v-if="!isLoading">
+            <div class="mb-4">This Plan is Locked</div>
+            <input
+              v-model="planPassword[currentPlan._id]"
+              type="password"
+              class="border-2 border-black rounded px-4 py-2 flex justify-center tracking-widest"
+              @blur="enterPlanPassword"
+              @keyup.enter="enterPlanPasswordKeyUp"
+            />
+          </div>
+        </div>
+        <div
+          v-else
+          class="overflow-x-scroll xl:w-screen flex flex-col items-start"
+        >
           <div
             v-if="!showMyDiary"
             class="grid gap-x-3"
@@ -226,18 +367,6 @@
                     <div
                       class="text-xs grid grid-cols-1 opacity-0 group-hover:opacity-100 transition"
                     >
-                      <!-- <button
-                        @click="stepDown(todo._id, todo.status)"
-                        class="text-gray-500 bg-gray-100 rounded px-1"
-                      >
-                        ❮
-                      </button>
-                      <button
-                        @click="stepUp(todo._id, todo.status)"
-                        class="text-yellow-500 bg-yellow-100 rounded px-1"
-                      >
-                        ❯
-                      </button> -->
                       <button
                         @click="addTodoDescription(todo._id)"
                         class="bg-slate-100 rounded px-1 font-bold"
@@ -247,14 +376,6 @@
                       </button>
                     </div>
                   </div>
-                  <!-- <textarea
-                    v-show="todo.description"
-                    :rows=""
-                    :value="todo.description"
-                    
-                    class="px-2 py-1 hover:bg-slate-100 rounded w-full mt-2 text-sm"
-                  ></textarea> -->
-
                   <el-input
                     v-show="todo.description === '' || todo.description"
                     placeholder="more"
@@ -285,6 +406,12 @@
                     >
                       URGENT
                     </button>
+                    <button
+                      v-else-if="todo.urgent === 3"
+                      class="bg-red-600 text-xs text-white font-bold px-1 rounded my-2 mx-1"
+                    >
+                      EXTREMELY URGENT
+                    </button>
                   </div>
                   <button
                     v-else
@@ -299,36 +426,72 @@
                       type="text"
                       :value="todo.deadline"
                     />
-                    <button
-                      class="text-xs px-1 rounded text-white"
-                      @click="togglePerson(todo._id, todo.person)"
-                      :class="todo.person === 'WILL' ? 'bg-emerald-700' : 'bg-blue-900'"
-                    >
-                      {{todo.person}}
-                    </button>
+                    <div>
+                      <el-popover
+                        placement="top-start"
+                        trigger="hover"
+                        width="200"
+                      >
+                        <template #reference>
+                          <button
+                            class="w-2 h-2 rounded-full mr-1 opacity-0 group-hover:opacity-100 transition"
+                            :class="`bg-${categories[todo.category]}-300 ${todo.category > 0 ? '!opacity-100' : ''}`"
+                          ></button>
+                        </template>
+                        <div class="flex justify-between">
+                          <div
+                            v-for="(cat, index) in categories"
+                            class="rounded p-1 pt-2"
+                            :class="`bg-slate-${todo.category === index ? '100' : '0'}`"
+                          >
+                            <button
+                              class="w-4 h-4 rounded-full"
+                              :class="`bg-${cat}-300`"
+                              @click="updateTodoCat(todo._id, index)"
+                            ></button>
+                          </div>
+                        </div>
+                      </el-popover>
+                      <button
+                        class="text-xs px-1 rounded text-white"
+                        @click="togglePerson(todo._id, todo.person)"
+                        :class="todo.person === 'WILL' ? 'bg-emerald-700' : 'bg-blue-900'"
+                      >
+                        {{todo.person}}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
           <div v-else>
-            <div
-              v-for="logger in loggers"
-              class="[&>div]:mr-4 w-[900px] flex my-7 text-lg"
-            >
-              <div>{{logger.createdAt.substring(5,10)}}</div>
-              <div
-                class="text-white px-2 rounded-xl font-bold"
-                :class="logger.person === 'WILL' ? 'bg-green-800': 'bg-blue-900' "
-              >
-                {{logger.person}}
-              </div>
-              <div>
-                <span
-                  v-for="word in logger.description?.split(' ')"
-                  :class="handleWordStyle(word)"
-                  >{{word + ' '}}</span
+            <div v-for="logger in loggers" class="flex my-7 text-lg group">
+              <div class="flex [&>div]:mr-4 w-[900px]">
+                <div>{{logger.createdAt.substring(5,10)}}</div>
+                <div
+                  class="text-white px-2 rounded-xl font-bold"
+                  :class="logger.person === 'WILL' ? 'bg-green-800': 'bg-blue-900' "
                 >
+                  {{logger.person}}
+                </div>
+                <div>
+                  <span
+                    v-for="word in logger.description?.split(' ')"
+                    :class="handleWordStyle(word)"
+                    >{{word + ' '}}</span
+                  >
+                </div>
+              </div>
+
+              <div
+                class="group-hover:opacity-100 hover:bg-red-500 rounded text-white flex items-center p-1 font-bold opacity-0 transition"
+                @click="deleteLogger(logger._id)"
+              >
+                <ion-icon
+                  name="trash-outline"
+                  class="cursor-pointer text-red-200 font-bold text-2xl"
+                ></ion-icon>
               </div>
             </div>
           </div>
@@ -342,298 +505,8 @@
       <p>WAI & WAI</p>
     </footer>
   </body>
-  <script>
-    const todo_app = Vue.createApp({
-      data() {
-        return {
-          selectedPerson: "",
-          todos: [],
-          api: "https://api.dse00.com:3000",
-          // api: "http://localhost:3002",
-          focusTodo: null,
-          filterUrgent: null,
-          filterDeadline: "",
-          showHiddenTodo: false,
-          TodoDragged: {},
-          isLoading: false,
-          showMyDiary: false,
-          loggers: [],
-          seachKeyword: "",
-        };
-      },
-      mounted() {
-        this.loadTodo();
-        this.selectedPerson = Cookies.get("selectedPerson") || "";
-      },
-      methods: {
-        async loadTodo() {
-          this.todos = await this.makeRequest("todos");
-          this.isLoading = false;
-        },
-        async makeRequest(url, method = "GET", params = {}) {
-          if (method !== "GET" && Cookies.get("password") !== "899009") {
-            const password = prompt("password?");
-            if (password !== "899009") return;
-            Cookies.set("password", password);
-          }
-          this.isLoading = true;
-          const fullUrl = `${this.api}/${url}`;
-          let _response;
-          if (method === "GET") {
-            _response = await fetch(fullUrl);
-          } else {
-            _response = await fetch(fullUrl, {
-              method,
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(params),
-            });
-          }
-          return _response.json();
-        },
-        async stepUp(id, s) {
-          if (s === 3) return;
-          if (s === 2) {
-            const yes = confirm("confirm hidden?");
-            if (!yes) return;
-          }
 
-          this.todos[this.todos.findIndex((i) => i._id === id)].status = s + 1;
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            status: s + 1,
-          });
-          this.loadTodo();
-        },
-        async stepDown(id, s) {
-          if (s === -1) return;
-          if (s === 0) {
-            const yes = confirm("confirm delete?");
-            if (!yes) return;
-          }
-          this.todos[this.todos.findIndex((i) => i._id === id)].status = s - 1;
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            status: s - 1,
-          });
-          this.loadTodo();
-        },
-        async submitTodoTitle(id, e) {
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            title: e.target.value,
-          });
-          this.loadTodo();
-        },
-        async submitTodoDescription(id, e) {
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            description: e.target.value || null,
-          });
-          this.loadTodo();
-        },
-        async toggleUrgent(id, u) {
-          this.todos[this.todos.findIndex((i) => i._id === id)].urgent =
-            u === 2 ? 0 : u + 1;
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            urgent: u === 2 ? 0 : u + 1,
-          });
-          this.loadTodo();
-        },
-        async newTodo() {
-          await this.makeRequest(`todos`, "POST", {
-            title: "New Todo",
-            person: this.selectedPerson ?? "WILL",
-          });
-          this.loadTodo();
-        },
-        async updateTodoDeadline(id, e) {
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            deadline: e.target.value,
-          });
-          this.loadTodo();
-        },
-        async togglePerson(id, p) {
-          this.todos[this.todos.findIndex((i) => i._id === id)].person =
-            p === "WILL" ? "LIK" : "WILL";
-          await this.makeRequest(`todos/${id}`, "PUT", {
-            person: p === "WILL" ? "LIK" : "WILL",
-          });
-          this.loadTodo();
-        },
-        selectPerson(p) {
-          if (this.selectedPerson === p) {
-            this.selectedPerson = "";
-            return;
-          }
-          this.selectedPerson = p;
-          Cookies.set("selectedPerson", p);
-        },
-        TofilterUrgent(u) {
-          if (this.filterUrgent === u) {
-            this.filterUrgent = null;
-            return;
-          }
-          this.filterUrgent = u;
-        },
-        clearFilter() {
-          this.seachKeyword = "";
-          this.filterUrgent = null;
-          this.filterDeadline = "";
-          this.selectedPerson = "";
-          this.showHiddenTodo = false;
-          this.showMyDiary = false;
-          document.querySelector("#filterDeadlineInput").value = "";
-        },
-        showAllTodo() {
-          this.showHiddenTodo = !this.showHiddenTodo;
-          this.showMyDiary = false;
-        },
-        onTodoDrag(e, todo) {
-          this.TodoDragged = { todo, screenX: e.screenX };
-        },
-        onTodoDrop(e) {
-          if (e.screenX - this.TodoDragged.screenX > 200) {
-            this.stepUp(
-              this.TodoDragged.todo._id,
-              this.TodoDragged.todo.status
-            );
-          } else if (e.screenX - this.TodoDragged.screenX < -200) {
-            this.stepDown(
-              this.TodoDragged.todo._id,
-              this.TodoDragged.todo.status
-            );
-          }
-        },
-        addTodoDescription(id) {
-          this.todos[this.todos.findIndex((i) => i._id === id)].description =
-            "";
-        },
-        async toggleShowDiary() {
-          this.showMyDiary = !this.showMyDiary;
-          if (this.showMyDiary) {
-            this.loggers = await this.makeRequest("loggers");
-          }
-          this.isLoading = false;
-        },
-        handleWordStyle(word) {
-          const common = "font-medium";
-          let style;
-          if (word === "DONE") style = "text-green-500";
-          if (word === "PROGRESS") style = "text-yellow-500";
-          if (word === "URGENT") style = "text-red-500";
-          if (word === "HURRY") style = "text-yellow-500";
-          if (word === "CREATE") style = "text-green-500";
-          if (word === "NORMAL") style = "text-slate-300";
-
-          return common + " " + style;
-        },
-      },
-      computed: {
-        filteredTodos() {
-          let _filteredTodo = [...this.todos];
-
-          if (this.seachKeyword !== "") {
-            _filteredTodo = _filteredTodo.filter(
-              (t) =>
-                t.title
-                  .toLowerCase()
-                  .includes(this.seachKeyword.toLowerCase()) ||
-                (t.description &&
-                  t.description
-                    .toLowerCase()
-                    .includes(this.seachKeyword.toLowerCase())) ||
-                t.deadline.includes(this.seachKeyword)
-            );
-          }
-          if (this.selectedPerson !== "") {
-            _filteredTodo = _filteredTodo.filter(
-              (t) => t.person === this.selectedPerson
-            );
-          }
-          if (this.filterUrgent !== null) {
-            _filteredTodo = _filteredTodo.filter(
-              (t) => t.urgent === this.filterUrgent
-            );
-          }
-          if (this.filterDeadline !== "") {
-            _filteredTodo = _filteredTodo.filter((t) => {
-              const date_array = t.deadline.split("/");
-              const todoDate = new Date(
-                `2023-${date_array[1]}-${date_array[0]}`
-              );
-              const filterDate = new Date(
-                `2023-${this.filterDeadline.split("/")[1]}-${
-                  this.filterDeadline.split("/")[0]
-                }`
-              );
-              return filterDate >= todoDate;
-            });
-          }
-          return _filteredTodo;
-        },
-        calWill() {
-          const total = this.todos.filter(
-            (t) => t.person === "WILL" && t.status !== -1 && t.status !== 3
-          ).length;
-          const done = this.todos.filter(
-            (t) => t.person === "WILL" && t.status === 2
-          ).length;
-          const inProgress = this.todos.filter(
-            (t) => t.person === "WILL" && t.status === 1
-          ).length;
-          const val = done + inProgress / 2;
-          return val > 0 ? ((val / total) * 100).toFixed(0) : 0;
-        },
-        calLik() {
-          const total = this.todos.filter(
-            (t) => t.person === "LIK" && t.status !== -1 && t.status !== 3
-          ).length;
-          const done = this.todos.filter(
-            (t) => t.person === "LIK" && t.status === 2
-          ).length;
-          const inProgress = this.todos.filter(
-            (t) => t.person === "LIK" && t.status === 1
-          ).length;
-          const val = done + inProgress / 2;
-          return val > 0 ? ((val / total) * 100).toFixed(0) : 0;
-        },
-      },
-    });
-    todo_app.use(ElementPlus);
-    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-      todo_app.component(key, component);
-    }
-    todo_app.mount("#todo_app");
-
-    const searchWeb = () => {
-      const keyword = document.querySelector("#webSearch").value;
-      window.location.href = (`https://movetoen.com/?s=${keyword}`);
-    };
-  </script>
-
-  <style>
-    .el-textarea__inner {
-      box-shadow: none;
-    }
-
-    @keyframes loading {
-      0% {
-        width: 0%;
-      }
-      100% {
-        width: 100%;
-      }
-    }
-
-    .loading-bar {
-      height: 2px;
-      left: 0;
-      width: 100%;
-      background: #000;
-      animation: loading 1.5s infinite;
-    }
-
-    .demo-progress .el-progress--line {
-      margin-bottom: 15px;
-      width: 100px;
-    }
-  </style>
+  <script src="./index.js"></script>
   <script
     type="module"
     src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
