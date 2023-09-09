@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/js-cookie"></script>
     <script src="https://unpkg.com/@element-plus/icons-vue"></script> -->
     <link rel="stylesheet" href="./lib/css/element-plus.css" />
-    <link rel="icon" type="image/x-icon" href="/avator.png">
+    <link rel="icon" type="image/x-icon" href="/avator.png" />
     <script src="./lib/js/vue.global.js"></script>
     <script src="./lib/js/element-plus.js"></script>
     <script src="./lib/js/js-cookie.js"></script>
@@ -21,7 +21,9 @@
     <script src="./tailwind.config.js"></script>
   </head>
   <body class="w-full flex flex-col items-center box-border">
-    <header class="flex justify-between w-full shadow py-7 px-24 xl:px-5">
+    <header
+      class="flex justify-between w-full shadow py-7 px-24 xl:px-5 z-10 relative bg-white"
+    >
       <a href="https://movetoen.com/" class="font-bold text-xl">MOVE TO EN</a>
       <div class="relative">
         <input
@@ -34,7 +36,7 @@
       <div
         class="text-[18px] font-semibold [&>a:not(:last-child)]:mr-12 last:mr-0"
       >
-        <a href="https://movetoen.com/#discussion">Discussion</a>
+        <a href="https://api.dse00.com:3003">Q&A Notes</a>
         <a href="/">Todos</a>
         <a
           href="https://www.notion.so/PLAN-e172adcd467347a7bbfeb5bcd9ca1869"
@@ -58,6 +60,28 @@
       id="todo_app"
       class="mt-10 text-slate-600 flex flex-col items-center 2xl:items-start px-20 xl:px-5 w-full box-border overflow-x-hidden opacity-0 min-h-[72vh]"
     >
+      <div
+        class="absolute top-20 left-0 h-full w-16 border-r border-slate-200 flex flex-col items-center pt-14"
+      >
+        <a
+          href=""
+          class="bg-gray-100 w-full text-center py-4 hover:bg-slate-100"
+        >
+          <ion-icon name="list-outline" class="text-[26px]"></ion-icon>
+        </a>
+        <a
+          href="https://api.dse00.com:3003/"
+          class="hover:bg-gray-50 w-full text-center py-4 hover:bg-slate-100"
+        >
+          <ion-icon name="calendar-outline" class="text-[26px]"></ion-icon>
+        </a>
+        <a
+          href="https://api.dse00.com:3003/luggage"
+          class="hover:bg-gray-50 w-full text-center py-4 hover:bg-slate-100"
+        >
+          <ion-icon name="beer-outline" class="text-[26px]"></ion-icon>
+        </a>
+      </div>
       <div v-if="isLoading" class="absolute top-[84px] loading-bar"></div>
       <div class="overflow-x-hidden 2xl:w-full min-w-[52vw]">
         <div class="w-full flex items-center justify-between mb-4">
@@ -281,10 +305,7 @@
                 >
                   {{showMyDiary ? 'TODO' :'MY DIARY'}}
                 </el-dropdown-item>
-                <el-dropdown-item
-                  @click="exportExcel"
-                  class="font-bold my-2"
-                >
+                <el-dropdown-item @click="exportExcel" class="font-bold my-2">
                   EXPORT EXCEL
                 </el-dropdown-item>
               </el-dropdown-menu>

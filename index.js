@@ -65,10 +65,10 @@ const todo_app = Vue.createApp({
       this.allPlans = await this.makeRequest("plans");
       this.isLoading = false;
       const currentPlanId = Cookies.get("currentPlan");
-      if (currentPlanId) {
+      if (currentPlanId && currentPlanId !== "undefined") {
         this.changePlan(currentPlanId);
       } else {
-        this.changePlan(this.allPlans[0]._id);
+        this.changePlan(this.allPlans[0]?._id);
       }
       this.planPassword[this.currentPlan._id] = Cookies.get(
         this.currentPlan.title
@@ -307,16 +307,19 @@ const todo_app = Vue.createApp({
       this.selectedPerson = Cookies.get("selectedPerson") || "";
       this.loadTodo(id);
       if (
-        !this.currentPlan.password ||
-        (this.currentPlan.password &&
-          Cookies.get(this.currentPlan.title) === this.currentPlan.password)
+        !this.currentPlan?.password ||
+        (this.currentPlan?.password &&
+          Cookies.get(this.currentPlan.title) === this.currentPlan?.password)
       ) {
         this.showSecretPlan = true;
       }
     },
     switchPlan() {
       const id = Cookies.get("lastPlan");
-      if (id == "undefined") return;
+      if (id == "undefined") {
+        Cookies.remove("lastPlan");
+        return;
+      }
       this.changePlan(id);
     },
     submitPlanDescription(id, e) {
